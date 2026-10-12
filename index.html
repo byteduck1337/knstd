@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KanaMaster</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="grain-overlay"></div>
+  <div class="bg-gradient"></div>
+  
+  <div class="container">
+    <header>
+      <div class="logo" id="logoBtn">
+        <span class="logo-text">KanaMaster</span>
+        <span class="logo-sub">v2.0</span>
+      </div>
+      <div class="header-actions">
+        <div class="icon-btn" id="settingsBtn" title="Settings">
+          <svg class="icon-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </div>
+        <div class="avatar" id="avatarBtn">KM</div>
+      </div>
+    </header>
+
+    <div id="setupScreen" class="screen active">
+      <div class="section-header">
+        <h1 class="section-title">Customize Your Drill</h1>
+        <p class="section-desc">Select character groups. Colors indicate your mastery level.</p>
+      </div>
+      
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot gray"></div><span>Not learned</span></div>
+        <div class="legend-item"><div class="legend-dot red"></div><span>Struggling</span></div>
+        <div class="legend-item"><div class="legend-dot yellow"></div><span>Learning</span></div>
+        <div class="legend-item"><div class="legend-dot green"></div><span>Mastered</span></div>
+      </div>
+      
+      <div class="group-tabs">
+        <button class="tab-btn active" data-tab="hiragana">Hiragana</button>
+        <button class="tab-btn" data-tab="katakana">Katakana</button>
+      </div>
+
+      <div class="subgrid" id="subgroupGrid"></div>
+
+      <div class="srs-info" id="srsInfo">
+        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 6v6l4 2"/>
+        </svg>
+        <span>SRS Due for Review: <strong id="dueCount">0</strong> characters</span>
+      </div>
+
+      <button class="start-btn" id="startBtn" disabled>
+        <span>Start Practice Session</span>
+        <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </button>
+    </div>
+
+    <div id="testScreen" class="screen">
+      <div class="test-container">
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="stats-bar">
+          <div class="stat-item">Stage: <span id="stageNum">1</span>/<span id="totalStages">15</span></div>
+          <div class="stat-item">Score: <span id="score">0</span></div>
+          <div class="stat-item">Time: <span id="timer">0:00</span></div>
+          <div id="retryBadge" class="retry-badge" style="display:none;">
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 12a9 9 0 1 0 3-6.7L3 8"/>
+              <path d="M3 3v5h5"/>
+            </svg>
+            <span>Error Loop</span>
+          </div>
+          <button class="end-btn" id="endSessionBtn" style="display:none;">
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+            <span>End Session</span>
+          </button>
+        </div>
+        <div class="method-container" id="methodContainer"></div>
+      </div>
+    </div>
+
+    <div id="resultsScreen" class="screen">
+      <div class="results">
+        <h2>Session Complete</h2>
+        <div class="results-grid">
+          <div class="result-box">
+            <div class="result-val" id="finalScore">0</div>
+            <div class="result-lbl">Score</div>
+          </div>
+          <div class="result-box">
+            <div class="result-val" id="finalAccuracy">0%</div>
+            <div class="result-lbl">Accuracy</div>
+          </div>
+          <div class="result-box">
+            <div class="result-val" id="finalTime">0:00</div>
+            <div class="result-lbl">Time</div>
+          </div>
+          <div class="result-box">
+            <div class="result-val" id="finalStreak">0</div>
+            <div class="result-lbl">Best Streak</div>
+          </div>
+        </div>
+        <div class="btn-group">
+          <button class="start-btn" id="newSessionBtn">
+            <span>New Session</span>
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Overlay -->
+  <div class="settings-overlay" id="settingsOverlay">
+    <div class="settings-card">
+      <div class="settings-header">
+        <div class="settings-title-row">
+          <svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          <h2>Settings</h2>
+        </div>
+        <button class="close-settings" id="closeSettingsBtn">
+          <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-label">Session Length</div>
+        <div class="length-options">
+          <button class="length-btn" data-length="10">
+            <span class="length-value">10</span>
+            <span class="length-desc">Quick drill</span>
+          </button>
+          <button class="length-btn active" data-length="20">
+            <span class="length-value">20</span>
+            <span class="length-desc">Standard</span>
+          </button>
+          <button class="length-btn" data-length="infinite">
+            <span class="length-value">&#8734;</span>
+            <span class="length-desc">Endless</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-label">Test Methods</div>
+        <div class="methods-grid">
+          <label class="method-checkbox">
+            <input type="checkbox" value="qe" checked>
+            <span class="checkmark"></span>
+            <div class="method-info">
+              <div class="method-title">Q/E Time Attack</div>
+              <div class="method-desc">Press Q or E quickly</div>
+            </div>
+          </label>
+          <label class="method-checkbox">
+            <input type="checkbox" value="flashcard" checked>
+            <span class="checkmark"></span>
+            <div class="method-info">
+              <div class="method-title">Flashcard</div>
+              <div class="method-desc">Type the romaji</div>
+            </div>
+          </label>
+          <label class="method-checkbox">
+            <input type="checkbox" value="mc" checked>
+            <span class="checkmark"></span>
+            <div class="method-info">
+              <div class="method-title">Multiple Choice</div>
+              <div class="method-desc">Pick from 4 options</div>
+            </div>
+          </label>
+          <label class="method-checkbox">
+            <input type="checkbox" value="romajiSelect" checked>
+            <span class="checkmark"></span>
+            <div class="method-info">
+              <div class="method-title">Romaji Select</div>
+              <div class="method-desc">Match kana to romaji</div>
+            </div>
+          </label>
+          <label class="method-checkbox">
+            <input type="checkbox" value="stroke" checked>
+            <span class="checkmark"></span>
+            <div class="method-info">
+              <div class="method-title">Stroke Order</div>
+              <div class="method-desc">Draw the character</div>
+            </div>
+          </label>
+        </div>
+        <div class="method-warning" id="methodWarning" style="display:none;">Select at least one method</div>
+      </div>
+
+      <button class="save-settings" id="saveSettingsBtn">
+        <span>Save Settings</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Profile Overlay -->
+  <div class="profile-overlay" id="profileOverlay">
+    <div class="profile-card">
+      <div class="profile-header">
+        <div class="profile-avatar-large">KM</div>
+        <div>
+          <div class="profile-name">Learner</div>
+          <div class="profile-level">SRS Level <span id="profileLevel">1</span></div>
+        </div>
+      </div>
+      <div class="profile-stats">
+        <div class="stat-box">
+          <div class="stat-value" id="profTests">0</div>
+          <div class="stat-label">Sessions</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" id="profAccuracy">0%</div>
+          <div class="stat-label">Accuracy</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" id="profMastered">0</div>
+          <div class="stat-label">Mastered</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" id="profTime">0m</div>
+          <div class="stat-label">Time Studied</div>
+        </div>
+      </div>
+      <button class="close-profile" id="closeProfileBtn">Close</button>
+      <button class="reset-btn" id="resetBtn">Reset All Progress</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
