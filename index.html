@@ -20,7 +20,7 @@
     <header>
       <div class="logo" id="logoBtn">
         <div class="logo-text">KanaMaster</div>
-        <div class="logo-sub">say what? say wha!</div>
+        <div class="logo-sub">say what? say wha!!!</div>
       </div>
       <div class="header-actions">
         <button class="icon-btn" id="settingsBtn" title="Settings">
@@ -79,8 +79,8 @@
 
         <div class="training-card" data-nav="leaderboard">
           <div class="training-card-icon">優</div>
-          <div class="training-card-title">Weekly Leaderboard</div>
-          <div class="training-card-desc">Compete with other learners this week.</div>
+          <div class="training-card-title">Global Leaderboard</div>
+          <div class="training-card-desc">Compete with other learners worldwide.</div>
           <div class="training-card-badge">Gamification</div>
         </div>
 
@@ -186,9 +186,25 @@
 
     <div id="screen-leaderboard" class="screen">
       <button class="back-btn" data-nav="menu">← Back</button>
-      <h1 class="section-title">Weekly Leaderboard</h1>
-      <p class="section-desc">Compete with other learners.</p>
-      <div class="dict-list" id="leaderboardList"></div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+          <h1 class="section-title" style="margin: 0;">Global Leaderboard</h1>
+          <p class="section-desc" style="margin: 0;">Compete with other learners.</p>
+        </div>
+        <button class="start-btn" style="width: auto; padding: 0.8rem 1.5rem;" id="refreshLeaderboardBtn">↻ Refresh</button>
+      </div>
+      
+      <div class="dict-item" style="background: var(--glass-highlight); font-weight: bold; font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">
+        <div style="width: 40px; text-align: center;">#</div>
+        <div style="flex: 1;">Player</div>
+        <div style="width: 80px; text-align: center;">Mastered</div>
+        <div style="width: 80px; text-align: center;">Sessions</div>
+        <div style="width: 100px; text-align: right;">Time</div>
+      </div>
+      
+      <div class="dict-list" id="leaderboardList" style="margin-top: 0.5rem;">
+        <!-- Данные будут загружены через JS -->
+      </div>
     </div>
 
     <div id="screen-progress" class="screen">
@@ -317,9 +333,11 @@
       
       <div class="profile-layout">
         <div class="profile-left">
-          <div class="avatar lg">KM</div>
+          <div class="avatar lg" id="profileAvatarText">KM</div>
           <div class="profile-name">Learner</div>
-          <div class="profile-sub">SRS Level <span id="profLevel">1</span></div>
+          <div class="profile-sub" style="margin-top: 0.5rem;">
+            <input type="text" id="usernameInput" class="text-input" style="width: 140px; padding: 0.4rem; font-size: 0.8rem; height: auto;" placeholder="Your nickname" maxlength="15">
+          </div>
         </div>
         <div class="profile-right">
           <div class="stat-box"><div class="stat-val" id="profSessions">0</div><div class="stat-lbl">Sessions</div></div>
@@ -329,7 +347,8 @@
         </div>
       </div>
 
-      <button class="start-btn" id="resetBtn" style="background: rgba(255,50,50,0.1); color: #f87171; border: 1px solid rgba(255,50,50,0.3); margin-top: 1rem;">Reset All Progress</button>
+      <button class="start-btn" id="updateLeaderboardBtn" style="background: var(--glass-highlight); color: #fff; margin-bottom: 1rem; box-shadow: none; border: 1px solid var(--glass-border);">Update Leaderboard</button>
+      <button class="start-btn" id="resetBtn" style="background: rgba(255,50,50,0.1); color: #f87171; border: 1px solid rgba(255,50,50,0.3);">Reset All Progress</button>
     </div>
   </div>
 
