@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
+  const API_URL = "https://kana.okeysexsex.workers.dev";
+
   const state = {
     screen: 'menu', tab: 'hiragana', groups: [],
     settings: { length: 20, methods: ['qe', 'flashcard', 'mc', 'romajiSelect', 'stroke'] },
@@ -149,6 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
     $('#rTime').textContent = fmtTime(elapsed);
     T.mode = null;
     go('results');
+    submitScore();
   };
 
   const startKana = () => {
@@ -513,7 +516,6 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.onclick = () => {
       currentDictType = btn.dataset.type;
       $$('#dictTypeToggle .tab-btn').forEach(b => b.classList.toggle('active', b === btn));
-      
       const translateBtn = $('#autoTranslateBtn');
       const localBtn = $('#localTranslateBtn');
       if (currentDictType === 'sentence') {
@@ -543,18 +545,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   $('#dictJp').addEventListener('input', (e) => {
     const text = e.target.value.trim();
-    if (text && window.wanakana) {
-      $('#dictRomaji').value = window.wanakana.toRomaji(text);
-    }
+    if (text && window.wanakana) $('#dictRomaji').value = window.wanakana.toRomaji(text);
   });
 
-  // Кнопка M (Локальный словарь)
   $('#localTranslateBtn').onclick = () => {
     const text = $('#dictNative').value.trim().toLowerCase();
     if (!text) { toast('Enter text first!', 'error'); return; }
-    
     const match = DICT_WORDS.find(w => w.en.toLowerCase() === text || w.ru.toLowerCase() === text || w.jp === text);
-    
     if (match) {
       $('#dictJp').value = match.jp;
       $('#dictRomaji').value = match.romaji;
@@ -564,30 +561,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Кнопка API (Google Translate)
   $('#autoTranslateBtn').onclick = async () => {
     const text = $('#dictNative').value.trim();
     if (!text) { toast('Enter text first!', 'error'); return; }
-    
     const isRussian = /[а-яА-ЯёЁ]/.test(text);
     const sourceLang = isRussian ? 'ru' : 'en';
-    
     const btn = $('#autoTranslateBtn');
     btn.textContent = 'Translating...';
     btn.disabled = true;
-
     try {
       const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=ja&dt=t&dt=rm&q=${encodeURIComponent(text)}`;
       const res = await fetch(url);
       const data = await res.json();
-      
       if (data && data[0]) {
         const chunks = data[0];
         const jpText = chunks[0][0];
-        
         let romajiText = chunks.slice(1).map(c => c[1] || "").join(' ').trim();
         if (!romajiText) romajiText = toRomaji(jpText);
-
         if (jpText.toLowerCase() === text.toLowerCase()) {
           toast('Translation failed. Try manual entry.', 'error');
         } else {
@@ -692,19 +682,56 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  const renderLeaderboard = () => {
-    const users = [
-      { name: 'You', xp: state.profile.correct * 10, me: true },
-      { name: 'Tanuki', xp: 1500 }, { name: 'Sakura', xp: 1200 }, { name: 'Kenji', xp: 1000 }, { name: 'Yuki', xp: 800 }
-    ].sort((a,b) => b.xp - a.xp);
-    $('#leaderboardList').innerHTML = users.map((u, i) => `
-      <div class="dict-item" style="${u.me ? 'border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.05);' : ''}">
-        <div style="font-family: var(--font-mono); width: 40px; color: ${i===0?'#fff':'var(--text-muted)'}">#${i+1}</div>
-        <div class="avatar" style="width: 32px; height: 32px; font-size: 0.7rem;">${u.name[0]}</div>
-        <div class="dict-info"><div class="dict-native">${u.name}</div></div>
-        <div style="font-family: var(--font-mono); font-weight: 600;">${u.xp} XP</div>
-      </div>
-    `).join('');
+  const renderLeaderboard = async () => {
+    const list = $('#leaderboardList');
+    list.innerHTML = `<div style="text-align:center; padding: 2rem; color: var(--text-muted);">Loading...</div>`;
+    try {
+      const res = await fetch(`${API_URL}/leaderboard`);
+      const data = await res.json();
+      if (!data || data.length === 0) {
+        list.innerHTML = `<div style="text-align:center; padding: 2rem; color: var(--text-muted);">No records yet. Be the first!</div>`;
+        return;
+      }
+      const localUsername = localStorage.getItem('km_username') || '';
+      list.innerHTML = data.map((u, i) => {
+        const isMe = u.username === localUsername;
+        const mins = Math.floor(u.time_studied / 60);
+        const timeStr = mins > 60 ? `${Math.floor(mins/60)}h ${mins%60}m` : `${mins}m`;
+        return `
+          <div class="dict-item" style="${isMe ? 'border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.05);' : ''}">
+            <div style="font-family: var(--font-mono); width: 40px; text-align: center; color: ${i<3?'#fff':'var(--text-muted)'}; font-weight: bold;">#${i+1}</div>
+            <div class="avatar" style="width: 32px; height: 32px; font-size: 0.7rem;">${u.username[0].toUpperCase()}</div>
+            <div class="dict-info" style="margin-left: 1rem;">
+              <div class="dict-native">${u.username} ${isMe ? '<span style="font-size:0.6rem; color:var(--accent);">(YOU)</span>' : ''}</div>
+            </div>
+            <div style="width: 80px; text-align: center; font-family: var(--font-mono); color: var(--accent); font-weight: bold;">${u.mastered}</div>
+            <div style="width: 80px; text-align: center; font-family: var(--font-mono);">${u.sessions}</div>
+            <div style="width: 100px; text-align: right; font-family: var(--font-mono); color: var(--text-muted);">${timeStr}</div>
+          </div>
+        `;
+      }).join('');
+    } catch (e) {
+      list.innerHTML = `<div style="text-align:center; padding: 2rem; color: var(--status-error);">Failed to load.</div>`;
+    }
+  };
+
+  const submitScore = async () => {
+    let username = localStorage.getItem('km_username');
+    if (!username) return;
+    const mastered = Object.keys(state.charStats).filter(c => statusOf(c) === 'green').length;
+    try {
+      await fetch(`${API_URL}/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: username,
+          sessions: state.profile.sessions,
+          time_studied: state.profile.timeSec,
+          mastered: mastered
+        })
+      });
+      toast('Leaderboard updated!', 'info');
+    } catch (e) {}
   };
 
   const renderProgress = () => {
@@ -741,23 +768,44 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#profileBtn').onclick = () => {
     const acc = state.profile.total ? Math.round((state.profile.correct / state.profile.total) * 100) : 0;
     const mins = Math.floor(state.profile.timeSec / 60);
-    const level = Math.floor(state.profile.correct / 50) + 1;
+    const username = localStorage.getItem('km_username') || '';
     
     $('#profSessions').textContent = state.profile.sessions;
     $('#profAccuracy').textContent = `${acc}%`;
     $('#profMastered').textContent = Object.keys(state.charStats).filter(c => statusOf(c) === 'green').length;
     $('#profTime').textContent = `${mins}m`;
-    $('#profLevel').textContent = level;
-    
+    $('#profileAvatarText').textContent = username ? username[0].toUpperCase() : 'KM';
+    $('#usernameInput').value = username;
     $('#profileOverlay').classList.add('active');
   };
   $('#closeProfileBtn').onclick = () => $('#profileOverlay').classList.remove('active');
+
+  $('#usernameInput').addEventListener('input', (e) => {
+    const val = e.target.value.trim();
+    if (val) {
+      localStorage.setItem('km_username', val);
+      $('#profileAvatarText').textContent = val[0].toUpperCase();
+    }
+  });
+
+  $('#updateLeaderboardBtn').onclick = () => {
+    if (!localStorage.getItem('km_username')) {
+      toast('Please enter a nickname first!', 'error');
+      return;
+    }
+    submitScore();
+    $('#profileOverlay').classList.remove('active');
+  };
 
   $('#resetBtn').onclick = () => {
     if (confirm('Reset ALL progress? This cannot be undone.')) { localStorage.clear(); location.reload(); }
   };
 
   $('#startKanaBtn').onclick = startKana;
+
+  document.addEventListener('click', e => {
+    if (e.target.id === 'refreshLeaderboardBtn') renderLeaderboard();
+  });
 
   $$('.overlay').forEach(o => {
     o.onclick = (e) => { if (e.target === o) o.classList.remove('active'); };
