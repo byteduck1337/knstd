@@ -19,7 +19,6 @@
   <div class="container">
     
     <header>
-      <!-- ЛОГОТИП С ТРАНСФОРМАЦИЕЙ -->
       <div class="logo" id="logoBtn">
         <div class="logo-text">KanaMaster</div>
         <div class="logo-sub">say what? say wha!!!</div>
@@ -63,7 +62,6 @@
       <h1 class="section-title">Choose your training</h1>
       <p class="section-desc">Master Japanese with interactive exercises.</p>
       
-      <!-- 3D TILT CARDS -->
       <div class="training-grid">
         <div class="training-card" data-nav="setup">
           <div class="training-card-icon">あ</div>
@@ -124,24 +122,29 @@
     </div>
 
     <div id="screen-setup" class="screen">
-      <button class="back-btn" data-nav="menu">← Back</button>
-      <h1 class="section-title">Kana Recognition</h1>
-      <p class="section-desc">Pick characters to start drilling.</p>
-
-      <div class="legend">
-        <span><i class="dot gray"></i>Not learned</span>
-        <span><i class="dot red"></i>Struggling</span>
-        <span><i class="dot yellow"></i>Learning</span>
-        <span><i class="dot green"></i>Mastered</span>
+      <div class="mode-header">
+        <div class="mode-header-left">
+          <h1 class="section-title">Kana Recognition</h1>
+          <p class="section-desc">Pick characters to start drilling.</p>
+        </div>
+        <div class="mode-header-center">
+          <div class="legend" style="margin: 0;">
+            <span><i class="dot gray"></i>Not learned</span>
+            <span><i class="dot red"></i>Struggling</span>
+            <span><i class="dot yellow"></i>Learning</span>
+            <span><i class="dot green"></i>Mastered</span>
+          </div>
+          <div class="group-tabs" style="margin: 0;">
+            <button class="tab-btn active" data-tab="hiragana">Hiragana</button>
+            <button class="tab-btn" data-tab="katakana">Katakana</button>
+          </div>
+        </div>
+        <div class="mode-header-right">
+          <button class="back-btn" data-nav="menu" style="margin: 0;">← Back</button>
+        </div>
       </div>
-
-      <div class="group-tabs">
-        <button class="tab-btn active" data-tab="hiragana">Hiragana</button>
-        <button class="tab-btn" data-tab="katakana">Katakana</button>
-      </div>
-
       <div class="subgrid" id="subgroupGrid"></div>
-      <button class="start-btn" id="startKanaBtn" disabled>Start Practice Session</button>
+      <button class="start-btn" id="startKanaBtn" disabled style="margin-top: 2rem;">Start Practice Session</button>
     </div>
 
     <div id="screen-training" class="screen">
@@ -171,22 +174,30 @@
     </div>
 
     <div id="screen-dict" class="screen">
-      <button class="back-btn" data-nav="menu">← Back</button>
-      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
-        <div>
+      <div class="mode-header">
+        <div class="mode-header-left">
           <h1 class="section-title">Dictionary</h1>
-          <p class="section-desc" style="margin: 0;">Your personal vocabulary.</p>
+          <p class="section-desc">Your personal vocabulary.</p>
         </div>
-        <button class="start-btn" style="width: auto; padding: 0.8rem 1.5rem;" id="addDictBtn">+ Add Entry</button>
+        <div class="mode-header-right">
+          <button class="start-btn compact" id="addDictBtn" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.8rem;">+ Add Entry</button>
+          <button class="back-btn" data-nav="menu" style="margin: 0;">← Back</button>
+        </div>
       </div>
       <input type="text" class="dict-search" id="dictSearch" placeholder="Search your dictionary...">
       <div class="dict-list" id="dictList"></div>
     </div>
 
     <div id="screen-sentence" class="screen">
-      <button class="back-btn" data-nav="menu">← Back</button>
-      <h1 class="section-title">Sentence Builder</h1>
-      <p class="section-desc">Translate the phrase by ordering the blocks.</p>
+      <div class="mode-header">
+        <div class="mode-header-left">
+          <h1 class="section-title">Sentence Builder</h1>
+          <p class="section-desc">Translate the phrase by ordering the blocks.</p>
+        </div>
+        <div class="mode-header-right">
+          <button class="back-btn" data-nav="menu" style="margin: 0;">← Back</button>
+        </div>
+      </div>
       <div class="test-container">
         <div class="instruction" id="sbPrompt" style="font-size: 1.2rem; margin-bottom: 2rem;"></div>
         <div class="sentence-answer" id="sbAnswer"></div>
@@ -196,9 +207,15 @@
     </div>
 
     <div id="screen-verb" class="screen">
-      <button class="back-btn" data-nav="menu">← Back</button>
-      <h1 class="section-title">Verb Conjugation</h1>
-      <p class="section-desc">Type the correct form of the verb.</p>
+      <div class="mode-header">
+        <div class="mode-header-left">
+          <h1 class="section-title">Verb Conjugation</h1>
+          <p class="section-desc">Type the correct form of the verb.</p>
+        </div>
+        <div class="mode-header-right">
+          <button class="back-btn" data-nav="menu" style="margin: 0;">← Back</button>
+        </div>
+      </div>
       <div class="test-container">
         <div class="kana-display" id="vcVerb" style="font-size: 3rem;"></div>
         <div class="instruction" id="vcHint" style="font-size: 1rem; margin-bottom: 1.5rem;"></div>
@@ -208,22 +225,29 @@
     </div>
 
     <div id="screen-reading" class="screen">
-      <button class="back-btn" data-nav="menu">← Back</button>
-      <h1 class="section-title">Interactive Reading</h1>
-      <p class="section-desc">Tap any highlighted word to see its meaning.</p>
+      <div class="mode-header">
+        <div class="mode-header-left">
+          <h1 class="section-title">Interactive Reading</h1>
+          <p class="section-desc">Tap any highlighted word to see its meaning.</p>
+        </div>
+        <div class="mode-header-right">
+          <button class="back-btn" data-nav="menu" style="margin: 0;">← Back</button>
+        </div>
+      </div>
       <div class="test-container" style="text-align: left; font-size: 1.5rem; line-height: 2.5;" id="readingContainer"></div>
     </div>
 
     <div id="screen-leaderboard" class="screen">
-      <button class="back-btn" data-nav="menu">← Back</button>
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <div>
-          <h1 class="section-title" style="margin: 0;">Global Leaderboard</h1>
-          <p class="section-desc" style="margin: 0;">Compete with other learners.</p>
+      <div class="mode-header">
+        <div class="mode-header-left">
+          <h1 class="section-title">Global Leaderboard</h1>
+          <p class="section-desc">Compete with other learners.</p>
         </div>
-        <button class="start-btn" style="width: auto; padding: 0.8rem 1.5rem;" id="refreshLeaderboardBtn">↻ Refresh</button>
+        <div class="mode-header-right">
+          <button class="start-btn compact" id="refreshLeaderboardBtn" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.8rem;">↻ Refresh</button>
+          <button class="back-btn" data-nav="menu" style="margin: 0;">← Back</button>
+        </div>
       </div>
-      
       <div class="dict-item" style="background: var(--glass-highlight); font-weight: bold; font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">
         <div style="width: 40px; text-align: center;">#</div>
         <div style="flex: 1;">Player</div>
@@ -231,14 +255,19 @@
         <div style="width: 80px; text-align: center;">Sessions</div>
         <div style="width: 100px; text-align: right;">Time</div>
       </div>
-      
       <div class="dict-list" id="leaderboardList" style="margin-top: 0.5rem;"></div>
     </div>
 
     <div id="screen-progress" class="screen">
-      <button class="back-btn" data-nav="menu">← Back</button>
-      <h1 class="section-title">Learning Island</h1>
-      <p class="section-desc">Your progress visualized.</p>
+      <div class="mode-header">
+        <div class="mode-header-left">
+          <h1 class="section-title">Learning Island</h1>
+          <p class="section-desc">Your progress visualized.</p>
+        </div>
+        <div class="mode-header-right">
+          <button class="back-btn" data-nav="menu" style="margin: 0;">← Back</button>
+        </div>
+      </div>
       <div class="test-container" style="text-align: center; padding: 4rem 2rem;">
         <div style="font-size: 5rem; margin-bottom: 2rem;">🏝️</div>
         <div style="display: flex; justify-content: center; gap: 3rem;">

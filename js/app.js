@@ -827,7 +827,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- 3D TILT EFFECT ---
   const initTilt = () => {
     const cards = document.querySelectorAll('.training-card');
     cards.forEach(card => {
@@ -868,7 +867,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  // --- ЭФФЕКТ КАРАНДАШНЫХ ЛИНИЙ ---
   const initPencilLines = () => {
     const cards = document.querySelectorAll('.training-card');
     
@@ -890,7 +888,6 @@ document.addEventListener('DOMContentLoaded', () => {
       let animationFrame;
       let isHovered = false;
 
-      // Функция создания одной случайной линии
       function createRandomLine() {
         const startX = Math.random() * width;
         const startY = Math.random() * height;
@@ -899,7 +896,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let currentX = startX;
         let currentY = startY;
         
-        // Генерируем извилистый путь
         const numPoints = 4 + Math.floor(Math.random() * 8);
         const angle = (Math.random() * Math.PI * 2);
         const speed = 10 + Math.random() * 20;
@@ -912,10 +908,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return {
           points: points,
-          alpha: 0.6 + Math.random() * 0.4, // Начальная прозрачность (черный цвет)
-          fadeSpeed: 0.003 + Math.random() * 0.005, // Скорость исчезновения
-          moveX: (Math.random() - 0.5) * 3, // Скорость полета по X
-          moveY: -1 - Math.random() * 3 // Скорость полета по Y (в основном вверх)
+          alpha: 0.6 + Math.random() * 0.4,
+          fadeSpeed: 0.003 + Math.random() * 0.005,
+          moveX: (Math.random() - 0.5) * 3,
+          moveY: -1 - Math.random() * 3
         };
       }
 
@@ -937,7 +933,6 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.beginPath();
             ctx.moveTo(line.points[0].x, line.points[0].y);
             for (let i = 1; i < line.points.length; i++) {
-              // Добавляем дрожание для эффекта карандаша
               const jx = line.points[i].x + (Math.random() - 0.5) * 2;
               const jy = line.points[i].y + (Math.random() - 0.5) * 2;
               ctx.lineTo(jx, jy);
