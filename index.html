@@ -17,15 +17,44 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <div class="container">
+    
     <header>
+      <!-- ЛОГОТИП С ТРАНСФОРМАЦИЕЙ -->
       <div class="logo" id="logoBtn">
         <div class="logo-text">KanaMaster</div>
         <div class="logo-sub">say what? say wha!!!</div>
       </div>
-      <div class="header-actions">
-        <button class="icon-btn" id="settingsBtn" title="Settings">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+
+      <div class="expandable-tabs" id="fx-tabs">
+        <button class="ext-tab active" data-nav="menu">
+          <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span class="ext-tab-title">Dashboard</span>
         </button>
+        
+        <button class="ext-tab" data-nav="leaderboard">
+          <svg viewBox="0 0 24 24"><path d="M12 2l3 7H9l3-7z"/><path d="M3 12h4v9H3z"/><path d="M10 10h4v11h-4z"/><path d="M17 12h4v9h-4z"/></svg>
+          <span class="ext-tab-title">Leaderboard</span>
+        </button>
+        
+        <div class="ext-separator"></div>
+
+        <button class="ext-tab" id="extSettingsBtn">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span class="ext-tab-title">Settings</span>
+        </button>
+        
+        <button class="ext-tab" data-nav="dict">
+          <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          <span class="ext-tab-title">Dictionary</span>
+        </button>
+        
+        <button class="ext-tab" data-nav="progress">
+          <svg viewBox="0 0 24 24"><path d="M4 20h4v-4h4v-4h4V8h4V4"/></svg>
+          <span class="ext-tab-title">Progress</span>
+        </button>
+      </div>
+
+      <div class="header-actions">
         <div class="avatar" id="profileBtn">KM</div>
       </div>
     </header>
@@ -34,6 +63,7 @@
       <h1 class="section-title">Choose your training</h1>
       <p class="section-desc">Master Japanese with interactive exercises.</p>
       
+      <!-- 3D TILT CARDS -->
       <div class="training-grid">
         <div class="training-card" data-nav="setup">
           <div class="training-card-icon">あ</div>
@@ -202,9 +232,7 @@
         <div style="width: 100px; text-align: right;">Time</div>
       </div>
       
-      <div class="dict-list" id="leaderboardList" style="margin-top: 0.5rem;">
-        <!-- Данные будут загружены через JS -->
-      </div>
+      <div class="dict-list" id="leaderboardList" style="margin-top: 0.5rem;"></div>
     </div>
 
     <div id="screen-progress" class="screen">
@@ -226,7 +254,9 @@
     <div class="overlay-card">
       <div class="overlay-head">
         <h3>Add to Dictionary</h3>
-        <button class="icon-btn" id="closeDictBtn">✕</button>
+        <button class="close-btn" id="closeDictBtn" aria-label="Close">
+          <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
       </div>
       
       <div class="field">
@@ -264,7 +294,9 @@
     <div class="overlay-card">
       <div class="overlay-head">
         <h3>Settings</h3>
-        <button class="icon-btn" id="closeSettingsBtn">✕</button>
+        <button class="close-btn" id="closeSettingsBtn" aria-label="Close">
+          <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
       </div>
       
       <div class="field">
@@ -328,7 +360,9 @@
     <div class="overlay-card" style="max-width: 600px;">
       <div class="overlay-head" style="border-bottom: none; margin-bottom: 0.5rem; padding-bottom: 0;">
         <h3>Profile</h3>
-        <button class="icon-btn" id="closeProfileBtn">✕</button>
+        <button class="close-btn" id="closeProfileBtn" aria-label="Close">
+          <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
       </div>
       
       <div class="profile-layout">

@@ -741,11 +741,6 @@ document.addEventListener('DOMContentLoaded', () => {
     $('#islandSessions').textContent = state.profile.sessions;
   };
 
-  $('#settingsBtn').onclick = () => {
-    $('#settingsOverlay').classList.add('active');
-    $$('#lengthGrid .tab-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.length, 10) === state.settings.length));
-    $$('.method-checkbox input').forEach(cb => cb.checked = state.settings.methods.includes(cb.value));
-  };
   $('#closeSettingsBtn').onclick = () => $('#settingsOverlay').classList.remove('active');
 
   $$('#lengthGrid .tab-btn').forEach(btn => {
@@ -811,6 +806,186 @@ document.addEventListener('DOMContentLoaded', () => {
     o.onclick = (e) => { if (e.target === o) o.classList.remove('active'); };
   });
 
+  const extTabsWrap = document.getElementById('fx-tabs');
+  if (extTabsWrap) {
+    const extTabs = extTabsWrap.querySelectorAll('.ext-tab');
+    
+    extTabsWrap.addEventListener('click', (e) => {
+      const clickedTab = e.target.closest('.ext-tab');
+      if (!clickedTab) return;
+
+      if (clickedTab.dataset.nav) {
+        go(clickedTab.dataset.nav);
+      }
+      
+      if (clickedTab.id === 'extSettingsBtn') {
+        $('#settingsOverlay').classList.add('active');
+      }
+
+      extTabs.forEach(t => t.classList.remove('active'));
+      clickedTab.classList.add('active');
+    });
+  }
+
+  // --- 3D TILT EFFECT ---
+  const initTilt = () => {
+    const cards = document.querySelectorAll('.training-card');
+    cards.forEach(card => {
+      let glare = card.querySelector('.tilt-glare');
+      if (!glare) {
+        glare = document.createElement('div');
+        glare.className = 'tilt-glare';
+        card.appendChild(glare);
+      }
+
+      const handleMove = (e) => {
+        const rect = card.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const mouseX = clientX - (rect.left + rect.width / 2);
+        const mouseY = clientY - (rect.top + rect.height / 2);
+        
+        card.style.transform = `translateY(-4px) rotateX(${-(mouseY / 15)}deg) rotateY(${mouseX / 15}deg)`;
+        glare.style.opacity = '1';
+        
+        const px = ((clientX - rect.left) / rect.width) * 100;
+        const py = ((clientY - rect.top) / rect.height) * 100;
+        
+        const isHovered = card.matches(':hover');
+        const glareColor = isHovered ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.15)';
+        glare.style.background = `radial-gradient(circle at ${px}% ${py}%, ${glareColor}, transparent 60%)`;
+      };
+
+      const reset = () => {
+        card.style.transform = `translateY(0) rotateX(0deg) rotateY(0deg)`;
+        glare.style.opacity = '0';
+      };
+
+      card.addEventListener('mousemove', handleMove);
+      card.addEventListener('touchmove', handleMove, { passive: true });
+      card.addEventListener('mouseleave', reset);
+      card.addEventListener('touchend', reset);
+    });
+  };
+
+  // --- ЭФФЕКТ КАРАНДАШНЫХ ЛИНИЙ ---
+  const initPencilLines = () => {
+    const cards = document.querySelectorAll('.training-card');
+    
+    cards.forEach(card => {
+      let canvas = card.querySelector('.pencil-canvas');
+      if (!canvas) {
+        canvas = document.createElement('canvas');
+        canvas.className = 'pencil-canvas';
+        card.prepend(canvas);
+      }
+      const ctx = canvas.getContext('2d');
+      
+      let width = card.clientWidth;
+      let height = card.clientHeight;
+      canvas.width = width;
+      canvas.height = height;
+
+      let lines = [];
+      let animationFrame;
+      let isHovered = false;
+
+      // Функция создания одной случайной линии
+      function createRandomLine() {
+        const startX = Math.random() * width;
+        const startY = Math.random() * height;
+        
+        const points = [];
+        let currentX = startX;
+        let currentY = startY;
+        
+        // Генерируем извилистый путь
+        const numPoints = 4 + Math.floor(Math.random() * 8);
+        const angle = (Math.random() * Math.PI * 2);
+        const speed = 10 + Math.random() * 20;
+
+        for (let i = 0; i < numPoints; i++) {
+          points.push({ x: currentX, y: currentY });
+          currentX += Math.cos(angle) * speed + (Math.random() - 0.5) * 15;
+          currentY += Math.sin(angle) * speed + (Math.random() - 0.5) * 15;
+        }
+
+        return {
+          points: points,
+          alpha: 0.6 + Math.random() * 0.4, // Начальная прозрачность (черный цвет)
+          fadeSpeed: 0.003 + Math.random() * 0.005, // Скорость исчезновения
+          moveX: (Math.random() - 0.5) * 3, // Скорость полета по X
+          moveY: -1 - Math.random() * 3 // Скорость полета по Y (в основном вверх)
+        };
+      }
+
+      function draw() {
+        if (!isHovered && lines.length === 0) return;
+        
+        ctx.clearRect(0, 0, width, height);
+        let activeLines = 0;
+
+        lines.forEach(line => {
+          if (line.alpha > 0) {
+            activeLines++;
+            line.alpha -= line.fadeSpeed;
+            line.points.forEach(p => {
+              p.x += line.moveX;
+              p.y += line.moveY;
+            });
+
+            ctx.beginPath();
+            ctx.moveTo(line.points[0].x, line.points[0].y);
+            for (let i = 1; i < line.points.length; i++) {
+              // Добавляем дрожание для эффекта карандаша
+              const jx = line.points[i].x + (Math.random() - 0.5) * 2;
+              const jy = line.points[i].y + (Math.random() - 0.5) * 2;
+              ctx.lineTo(jx, jy);
+            }
+            
+            ctx.strokeStyle = `rgba(0, 0, 0, ${line.alpha})`;
+            ctx.lineWidth = 1 + Math.random() * 0.5;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.stroke();
+          }
+        });
+
+        if (activeLines === 0) {
+          lines = [];
+        } else {
+          animationFrame = requestAnimationFrame(draw);
+        }
+      }
+
+      card.addEventListener('mouseenter', () => {
+        isHovered = true;
+        width = card.clientWidth;
+        height = card.clientHeight;
+        canvas.width = width;
+        canvas.height = height;
+
+        lines = [];
+        const numLines = 20 + Math.floor(Math.random() * 15);
+        for (let i = 0; i < numLines; i++) {
+          lines.push(createRandomLine());
+        }
+        
+        if (animationFrame) cancelAnimationFrame(animationFrame);
+        draw();
+      });
+
+      card.addEventListener('mouseleave', () => {
+        isHovered = false;
+        ctx.clearRect(0, 0, width, height);
+        lines = [];
+        if (animationFrame) cancelAnimationFrame(animationFrame);
+      });
+    });
+  };
+
   load();
   go('menu');
+  initTilt();
+  initPencilLines();
 });
