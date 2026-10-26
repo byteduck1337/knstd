@@ -37,24 +37,6 @@ The project is dependency-free at the application layer: plain JavaScript, hand-
 
 ---
 
-## Table of Contents
-
-- [System Architecture](#system-architecture)
-- [Core Modules](#core-modules)
-- [Testing Vectors](#testing-vectors)
-- [Learning Data](#learning-data)
-- [Spaced Repetition](#spaced-repetition)
-- [State and Persistence](#state-and-persistence)
-- [UI and Design System](#ui-and-design-system)
-- [Getting Started](#getting-started)
-- [Project Structure](#project-structure)
-- [Leaderboard Setup](#leaderboard-setup)
-- [Roadmap](#roadmap)
-- [Contributing](#contributing)
-- [License](#license)
-
----
-
 ## System Architecture
 
 ```mermaid
@@ -229,29 +211,6 @@ The interface is implemented in `style.css` with native CSS features only.
 
 ---
 
-## Getting Started
-
-No installation and no build step.
-
-```bash
-git clone https://github.com/YOUR_USERNAME/KanaMaster.git
-cd KanaMaster
-
-python3 -m http.server 8000
-```
-
-Open `http://localhost:8000`.
-
-Any static server works equally well:
-
-```bash
-npx serve .
-```
-
-Serve over HTTP rather than opening `index.html` directly, so that module fetching and the leaderboard request behave consistently.
-
----
-
 ## Project Structure
 
 ```text
@@ -263,25 +222,6 @@ KanaMaster/
 ├── data.js         # Kana tables, dictionary entries, sentence templates
 └── README.md
 ```
-
----
-
-## Leaderboard Setup
-
-The leaderboard is optional. Set the Worker base URL in `app.js`:
-
-```javascript
-const API_URL = "https://YOUR_WORKER_SUBDOMAIN.workers.dev";
-```
-
-Expected endpoint contract:
-
-| Method | Route | Response |
-| :--- | :--- | :--- |
-| `GET` | `/leaderboard` | Array of `{ username, score }` objects |
-| `POST` | `/leaderboard` | Persists a submitted session score |
-
-Deploy a Cloudflare Worker with a KV namespace or D1 binding for storage. The client renders an empty state when no records exist and degrades gracefully when the request fails.
 
 ---
 
@@ -311,6 +251,28 @@ gantt
     section Platform
     Android client                   :apk, 2026-12-01, 30d
 ```
+
+| Item | Type | Window | Notes |
+| :--- | :--- | :--- | :--- |
+| **Leaderboard fix** | Infra | Weeks 1–2 | Align the `GET/POST /leaderboard` contract with the client, remove empty-state / network-error desync, stabilise score submission. Blocks anything else that writes to the backend. |
+| **Interactive islands** | Content | Weeks 1–4 | Thematic sets of kana and words with isolated progress. Plugged in via `data.js`, no changes to `srs.js`. |
+| **Sentence Builder rework** | Feature | Weeks 2–5 | Expanded templates, word-order validation, richer error feedback. Data stays in `data.js`. |
+| **Voice playback** | Audio | Weeks 3–5 | Character and dictionary playback through the Web Speech API, integrated into recall modes and SRS review. |
+| **Interactive reading** | Feature | Weeks 5–8 | Short texts with highlighting of known kana and jump-to-card / SRS. Builds on islands and the dictionary. |
+| **Android client** | Platform | Weeks 5–8 | Wrapper around the existing web client (WebView / PWA), offline mode, local storage. No architectural changes to the core. |
+
+### Later — beyond the 2-month window
+
+- **Kanji and radical modules** — extend the learning model beyond kana.
+- **Cross-device sync** — sync `km_*` state over the (fixed) Worker backend.
+- **Audio-assisted recall** — full audio vectors in SRS on top of the base voice playback.
+
+### Principles for new items
+
+1. **Do not touch the core.** Islands, reading and the Android client plug in through `data.js` and the session controller; scheduling stays in `srs.js`.
+2. **Offline first.** Everything except the leaderboard must work without network.
+3. **Persist through `save()` / `load()`.** New modules reuse the `km_*` keys.
+4. **No dependencies.** TTS is the native Web Speech API; Android is wrapper-only, no bundler.
 
 ---
 
