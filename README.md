@@ -287,20 +287,29 @@ Deploy a Cloudflare Worker with a KV namespace or D1 binding for storage. The cl
 
 ## Roadmap
 
+The project started in October 2026. The current codebase is a working client-side kana engine with SRS, a trilingual dictionary and a leaderboard draft. The near-term window is **two months from the current release**. Dates below are relative windows — adjust them to the actual start date of the plan.
+
+### Next — 2-month horizon
+
 ```mermaid
 gantt
-    title KanaMaster Development Plan
-    dateFormat YYYY-MM-DD
-    section Foundations
-    Kana session engine          :done, 2026-01-01, 60d
-    Spaced repetition scheduler  :done, 2026-03-01, 45d
-    section Data
-    Trilingual dictionary        :done, 2026-04-15, 60d
-    Leaderboard backend          :done, 2026-06-15, 45d
-    section Next
-    Kanji and radical modules    :active, 2026-11-01, 90d
-    Audio-assisted recall        :2027-01-01, 60d
-    Cross-device sync            :2027-03-01, 90d
+    title KanaMaster — Next 2 Months
+    dateFormat  YYYY-MM-DD
+    axisFormat  Week %W
+
+    section Infra
+    Leaderboard fix                  :crit, lb, 2026-10-27, 14d
+
+    section Content & Interaction
+    Interactive islands              :isl, 2026-11-03, 25d
+    Sentence Builder rework          :sb, 2026-11-10, 28d
+
+    section Audio & Reading
+    Voice playback                   :tts, 2026-11-17, 21d
+    Interactive reading              :read, 2026-12-01, 24d
+
+    section Platform
+    Android client                   :apk, 2026-12-01, 30d
 ```
 
 ---
