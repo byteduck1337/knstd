@@ -6,7 +6,14 @@ document.addEventListener('DOMContentLoaded', () => {
     settings: { length: 20, methods: ['qe', 'flashcard', 'mc', 'romajiSelect', 'stroke'] },
     profile: { sessions: 0, correct: 0, total: 0, timeSec: 0 },
     charStats: {}, srs: {}, dict: [],
-    train: { mode: null, queue: [], index: 0, total: 0, correct: 0, score: 0, startTime: 0, locked: false, cleanup: null, timer: null, hudTimer: null }
+    train: { mode: null, queue: [], index: 0, total: 0, correct: 0, score: 0, startTime: 0, locked: false, cleanup: null, timer: null, hudTimer: null },
+    speed: {
+      active: false, phase: 'idle', lives: 5, streak: 0, bestStreak: 0,
+      score: 0, correct: 0, total: 0, sessionStart: 0, sessionEnd: 0,
+      current: null, answerTime: 15000, answerStart: 0, answerTimer: null,
+      sessionTimer: null, flashTimers: [], inputLocked: false, rank: 'D',
+      totalScore: 0, jpIme: null
+    }
   };
 
   const $ = s => document.querySelector(s);
@@ -39,6 +46,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (s.methods && s.methods.length) state.settings.methods = s.methods;
       }
     } catch(e){}
+    try {
+      const v = localStorage.getItem('km_speed_jpime');
+      if (v === 'yes' || v === 'no') state.speed.jpIme = v;
+    } catch(e){}
   };
   const save = (key, val) => localStorage.setItem(`km_${key}`, JSON.stringify(val));
 
@@ -49,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
     state.screen = name;
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (name !== 'training' && state.train.mode) endTraining();
+    if (name !== 'speed' && state.speed.active) endSpeed(false);
     if (name === 'setup') renderSetup();
     if (name === 'dict') renderDict();
     if (name === 'leaderboard') renderLeaderboard();
@@ -63,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (nav) {
       const target = nav.dataset.nav;
       if (target === 'srs-start') startSRS();
+      else if (target === 'speed') openSpeed();
       else go(target);
     }
   });
@@ -740,6 +753,424 @@ document.addEventListener('DOMContentLoaded', () => {
     $('#islandVocab').textContent = state.dict.length;
     $('#islandSessions').textContent = state.profile.sessions;
   };
+
+  const renderSpeedLives = () => {
+    const wrap = $('#speedLives');
+    let html = '';
+    for (let i = 0; i < 5; i++) {
+      const lost = i >= state.speed.lives ? 'lost' : '';
+      html += `<svg class="speed-heart ${lost}" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.9-10-9.1C.3 8.7 2.4 4.5 6.5 4.5c2.1 0 3.8 1.2 4.5 2.9.7-1.7 2.4-2.9 4.5-2.9 4.1 0 6.2 4.2 4.5 7.4C19.5 16.1 12 21 12 21z"/></svg>`;
+    }
+    wrap.innerHTML = html;
+  };
+
+  const rankFromScore = (score) => {
+    if (score >= 95) return 'SSS';
+    if (score >= 85) return 'SS';
+    if (score >= 75) return 'S';
+    if (score >= 60) return 'A';
+    if (score >= 45) return 'B';
+    if (score >= 30) return 'C';
+    return 'D';
+  };
+
+  const rankClass = (rank) => {
+    const map = { D: 'rank-d', C: 'rank-c', B: 'rank-b', A: 'rank-a', S: 'rank-s', SS: 'rank-ss', SSS: 'rank-sss' };
+    return map[rank] || 'rank-d';
+  };
+
+  const setSpeedRank = (rank, pop) => {
+    const badge = $('#speedRankBadge');
+    badge.classList.remove('rank-d', 'rank-c', 'rank-b', 'rank-a', 'rank-s', 'rank-ss', 'rank-sss', 'pop');
+    void badge.offsetWidth;
+    badge.classList.add(rankClass(rank));
+    badge.textContent = rank;
+    if (pop) badge.classList.add('pop');
+    state.speed.rank = rank;
+  };
+
+  const levenshtein = (a, b) => {
+    const m = a.length, n = b.length;
+    if (!m) return n;
+    if (!n) return m;
+    const dp = new Array(n + 1);
+    for (let j = 0; j <= n; j++) dp[j] = j;
+    for (let i = 1; i <= m; i++) {
+      let prev = dp[0];
+      dp[0] = i;
+      for (let j = 1; j <= n; j++) {
+        const tmp = dp[j];
+        dp[j] = a[i - 1] === b[j - 1] ? prev : 1 + Math.min(prev, dp[j], dp[j - 1]);
+        prev = tmp;
+      }
+    }
+    return dp[n];
+  };
+
+  const similarity = (a, b) => {
+    const A = a.toLowerCase().trim();
+    const B = b.toLowerCase().trim();
+    if (!A && !B) return 100;
+    const max = Math.max(A.length, B.length);
+    if (!max) return 100;
+    const dist = levenshtein(A, B);
+    return Math.max(0, Math.round((1 - dist / max) * 100));
+  };
+
+  const hasJapaneseChars = (s) => /[\u3040-\u30ff\u4e00-\u9faf]/.test(s);
+  const toRomajiLoose = (s) => {
+    if (window.wanakana) return window.wanakana.toRomaji(s);
+    return s;
+  };
+  const normalize = (s) => s.toLowerCase().trim();
+
+  const checkAnswer = (given, expected, jpIme) => {
+    const g = normalize(given);
+    const e = normalize(expected);
+    if (!g) return { sim: 0, matchedVariant: null };
+    if (hasJapaneseChars(expected)) {
+      if (jpIme === 'yes') {
+        const simJp = similarity(g, e);
+        const romajiExpected = normalize(toRomajiLoose(expected));
+        const simRomaji = similarity(g, romajiExpected);
+        const best = Math.max(simJp, simRomaji);
+        return { sim: best, matchedVariant: simJp >= simRomaji ? 'jp' : 'romaji' };
+      } else {
+        const romajiExpected = normalize(toRomajiLoose(expected));
+        return { sim: similarity(g, romajiExpected), matchedVariant: 'romaji' };
+      }
+    }
+    return { sim: similarity(g, e), matchedVariant: 'plain' };
+  };
+
+  const pickSpeedPair = () => {
+    const pool = DICT_WORDS.filter(w => w.en && w.ru && w.jp && w.romaji);
+    const item = pool[Math.floor(Math.random() * pool.length)];
+    const mode = Math.floor(Math.random() * 5);
+    if (mode === 0) return { prompt: item.en, answer: item.romaji, lang: 'English', answerLang: 'Romaji', jp: false, isJpAnswer: false };
+    if (mode === 1) return { prompt: item.ru, answer: item.romaji, lang: 'Русский', answerLang: 'Romaji', jp: false, isJpAnswer: false };
+    if (mode === 2) return { prompt: item.jp, answer: item.romaji, lang: '日本語', answerLang: 'Romaji', jp: true, isJpAnswer: false };
+    if (mode === 3) return { prompt: item.romaji, answer: item.en, lang: 'Romaji', answerLang: 'English', jp: false, isJpAnswer: false };
+    return { prompt: item.romaji, answer: item.jp, lang: 'Romaji', answerLang: '日本語', jp: false, isJpAnswer: true };
+  };
+
+  const showSpeedSetup = () => {
+    $('#speedSetup').classList.add('active');
+    $('#speedIntro').classList.remove('active');
+    $('#speedFlashWrap').classList.remove('active');
+    $('#speedAnswerWrap').classList.remove('active');
+    $('#speedSessionEnd').classList.remove('active');
+    $('#speedEndBtn').style.display = 'none';
+    const note = $('#speedSetupNote');
+    if (state.speed.jpIme === 'yes') note.textContent = 'Japanese IME: enabled — Japanese answers can be typed as kana/kanji or romaji';
+    else if (state.speed.jpIme === 'no') note.textContent = 'Japanese IME: not available — Japanese answers will be typed in romaji';
+    else note.textContent = '';
+  };
+
+  const openSpeed = () => {
+    state.speed.active = false;
+    state.speed.phase = 'idle';
+    state.speed.lives = 5;
+    state.speed.streak = 0;
+    state.speed.score = 0;
+    state.speed.totalScore = 0;
+    state.speed.correct = 0;
+    state.speed.total = 0;
+    state.speed.answerTime = 15000;
+    state.speed.rank = 'D';
+    clearSpeedTimers();
+    renderSpeedLives();
+    $('#speedStreak').textContent = 'Streak 0';
+    $('#speedSessionTimer').textContent = '3:00';
+    setSpeedRank('D', false);
+    $('#speedInput').value = '';
+    $('#speedFeedback').textContent = '';
+    $('#speedFeedback').className = 'feedback';
+    $('#speedTimerBar').style.width = '100%';
+    $('#speedTimerBar').className = 'speed-timer-bar';
+    go('speed');
+    showSpeedSetup();
+  };
+
+  const clearSpeedTimers = () => {
+    if (state.speed.answerTimer) { clearInterval(state.speed.answerTimer); state.speed.answerTimer = null; }
+    if (state.speed.sessionTimer) { clearInterval(state.speed.sessionTimer); state.speed.sessionTimer = null; }
+    state.speed.flashTimers.forEach(t => clearTimeout(t));
+    state.speed.flashTimers = [];
+  };
+
+  const startSpeedSession = () => {
+    state.speed.active = true;
+    state.speed.phase = 'flash';
+    state.speed.lives = 5;
+    state.speed.streak = 0;
+    state.speed.score = 0;
+    state.speed.totalScore = 0;
+    state.speed.correct = 0;
+    state.speed.total = 0;
+    state.speed.answerTime = 15000;
+    state.speed.sessionStart = Date.now();
+    state.speed.sessionEnd = state.speed.sessionStart + 180000;
+    state.speed.inputLocked = false;
+    state.speed.rank = 'D';
+    renderSpeedLives();
+    $('#speedStreak').textContent = 'Streak 0';
+    setSpeedRank('D', false);
+    $('#speedSetup').classList.remove('active');
+    $('#speedIntro').classList.remove('active');
+    $('#speedSessionEnd').classList.remove('active');
+    $('#speedEndBtn').style.display = 'inline-flex';
+    $('#speedInput').value = '';
+    $('#speedFeedback').textContent = '';
+    $('#speedFeedback').className = 'feedback';
+
+    clearInterval(state.speed.sessionTimer);
+    state.speed.sessionTimer = setInterval(() => {
+      const now = Date.now();
+      const left = Math.max(0, state.speed.sessionEnd - now);
+      $('#speedSessionTimer').textContent = fmtTime(Math.ceil(left / 1000));
+      if (left <= 0) endSpeed(true);
+    }, 100);
+
+    nextSpeedRound();
+  };
+
+  const nextSpeedRound = () => {
+    if (!state.speed.active) return;
+    if (state.speed.lives <= 0) { endSpeed(true); return; }
+    if (Date.now() >= state.speed.sessionEnd) { endSpeed(true); return; }
+
+    state.speed.phase = 'flash';
+    const pair = pickSpeedPair();
+    state.speed.current = pair;
+    state.speed.inputLocked = false;
+
+    const flashWrap = $('#speedFlashWrap');
+    const flashWord = $('#speedFlashWord');
+    const flashLang = $('#speedFlashLang');
+    const answerWrap = $('#speedAnswerWrap');
+
+    answerWrap.classList.remove('active');
+    flashWrap.classList.add('active');
+
+    flashWord.className = 'speed-flash-word' + (pair.jp ? ' jp' : '');
+    flashWord.textContent = pair.prompt;
+    flashLang.textContent = pair.lang;
+    flashLang.className = 'speed-flash-lang';
+
+    const flashShowMs = 900;
+    const flashHoldMs = 1500;
+
+    state.speed.flashTimers.push(setTimeout(() => {
+      flashWord.classList.add('show');
+      flashLang.classList.add('show');
+    }, 50));
+
+    state.speed.flashTimers.push(setTimeout(() => {
+      flashWord.classList.remove('show');
+      flashWord.classList.add('hide');
+      flashLang.classList.remove('show');
+    }, flashShowMs + flashHoldMs));
+
+    state.speed.flashTimers.push(setTimeout(() => {
+      flashWrap.classList.remove('active');
+      startAnswerPhase();
+    }, flashShowMs + flashHoldMs + 300));
+  };
+
+  const startAnswerPhase = () => {
+    if (!state.speed.active) return;
+    state.speed.phase = 'answer';
+    const answerWrap = $('#speedAnswerWrap');
+    answerWrap.classList.add('active');
+    const input = $('#speedInput');
+    input.value = '';
+    input.disabled = false;
+    input.className = 'text-input speed-input';
+    const isJpAnswer = state.speed.current && state.speed.current.isJpAnswer;
+    if (isJpAnswer && state.speed.jpIme === 'no') {
+      input.placeholder = 'Type in romaji...';
+    } else if (isJpAnswer) {
+      input.placeholder = 'Type kana, kanji or romaji...';
+    } else {
+      input.placeholder = 'Type the translation...';
+    }
+    $('#speedFeedback').textContent = '';
+    $('#speedFeedback').className = 'feedback';
+    setTimeout(() => input.focus(), 50);
+
+    state.speed.answerStart = Date.now();
+    const total = state.speed.answerTime;
+    const bar = $('#speedTimerBar');
+    bar.style.width = '100%';
+    bar.className = 'speed-timer-bar';
+
+    clearInterval(state.speed.answerTimer);
+    state.speed.answerTimer = setInterval(() => {
+      const elapsed = Date.now() - state.speed.answerStart;
+      const left = Math.max(0, total - elapsed);
+      const pct = (left / total) * 100;
+      bar.style.width = `${pct}%`;
+      if (pct <= 33) bar.className = 'speed-timer-bar danger';
+      else if (pct <= 66) bar.className = 'speed-timer-bar warn';
+      if (left <= 0) {
+        clearInterval(state.speed.answerTimer);
+        state.speed.answerTimer = null;
+        handleSpeedTimeout();
+      }
+    }, 50);
+  };
+
+  const handleSpeedTimeout = () => {
+    if (!state.speed.active) return;
+    if (state.speed.inputLocked) return;
+    state.speed.inputLocked = true;
+    const fb = $('#speedFeedback');
+    const cur = state.speed.current;
+    let hint = cur.answer;
+    if (cur.isJpAnswer && state.speed.jpIme === 'no') hint = toRomajiLoose(cur.answer);
+    fb.textContent = `Timeout — answer: ${hint}`;
+    fb.className = 'feedback wrong';
+    loseSpeedLife();
+    state.speed.streak = 0;
+    $('#speedStreak').textContent = 'Streak 0';
+    setTimeout(() => {
+      if (state.speed.active) nextSpeedRound();
+    }, 1200);
+  };
+
+  const loseSpeedLife = () => {
+    state.speed.lives = Math.max(0, state.speed.lives - 1);
+    renderSpeedLives();
+    if (state.speed.lives <= 0) {
+      setTimeout(() => endSpeed(true), 600);
+    }
+  };
+
+  const submitSpeedAnswer = () => {
+    if (!state.speed.active || state.speed.phase !== 'answer' || state.speed.inputLocked) return;
+    const input = $('#speedInput');
+    const val = input.value.trim();
+    if (!val) return;
+
+    state.speed.inputLocked = true;
+    clearInterval(state.speed.answerTimer);
+    state.speed.answerTimer = null;
+    input.disabled = true;
+
+    const total = state.speed.answerTime;
+    const elapsed = Date.now() - state.speed.answerStart;
+    const timeUsedPct = Math.min(100, Math.round((elapsed / total) * 100));
+    const cur = state.speed.current;
+    const result = checkAnswer(val, cur.answer, state.speed.jpIme);
+    const sim = result.sim;
+    const fb = $('#speedFeedback');
+
+    if (sim >= 80) {
+      const rawScore = Math.max(0, sim - timeUsedPct);
+      const add = Math.min(100, rawScore);
+      state.speed.score += add;
+      state.speed.totalScore += add;
+      state.speed.correct++;
+      state.speed.total++;
+      state.speed.streak++;
+      if (state.speed.streak > state.speed.bestStreak) state.speed.bestStreak = state.speed.streak;
+      $('#speedStreak').textContent = `Streak ${state.speed.streak}`;
+
+      fb.textContent = `+${add} (${sim}% match · ${timeUsedPct}% time)`;
+      fb.className = 'feedback correct';
+
+      if (state.speed.answerTime > 3000) {
+        state.speed.answerTime = Math.max(3000, state.speed.answerTime - 500);
+      }
+
+      setSpeedRank(rankFromScore(sim), true);
+
+      setTimeout(() => {
+        if (state.speed.active) nextSpeedRound();
+      }, 800);
+    } else {
+      let shownAnswer = cur.answer;
+      if (cur.isJpAnswer && state.speed.jpIme === 'no') shownAnswer = toRomajiLoose(cur.answer);
+      fb.textContent = `Wrong — answer: ${shownAnswer}`;
+      fb.className = 'feedback wrong';
+      state.speed.total++;
+      state.speed.streak = 0;
+      $('#speedStreak').textContent = 'Streak 0';
+
+      setSpeedRank(rankFromScore(sim), true);
+
+      loseSpeedLife();
+      setTimeout(() => {
+        if (state.speed.active) nextSpeedRound();
+      }, 1200);
+    }
+  };
+
+  const endSpeed = (showResults) => {
+    if (!state.speed.active) return;
+    state.speed.active = false;
+    state.speed.phase = 'idle';
+    clearSpeedTimers();
+    $('#speedEndBtn').style.display = 'none';
+    const elapsed = state.speed.sessionStart ? Math.floor((Date.now() - state.speed.sessionStart) / 1000) : 0;
+    if (showResults) {
+      const avg = state.speed.total ? Math.round(state.speed.totalScore / state.speed.total) : 0;
+      const finalRank = rankFromScore(avg);
+      $('#speedEndRank').textContent = finalRank;
+      $('#speedEndScore').textContent = state.speed.totalScore;
+      $('#speedEndCorrect').textContent = state.speed.correct;
+      $('#speedEndWords').textContent = state.speed.total;
+      $('#speedSessionEnd').classList.add('active');
+      $('#speedSetup').classList.remove('active');
+      $('#speedIntro').classList.remove('active');
+      $('#speedFlashWrap').classList.remove('active');
+      $('#speedAnswerWrap').classList.remove('active');
+      if (elapsed > 0) {
+        state.profile.sessions++;
+        state.profile.timeSec += elapsed;
+        save('profile', state.profile);
+      }
+      setSpeedRank(finalRank, true);
+    } else {
+      showSpeedSetup();
+    }
+  };
+
+  $('#speedKbYes').onclick = () => {
+    state.speed.jpIme = 'yes';
+    localStorage.setItem('km_speed_jpime', 'yes');
+    $('#speedSetup').classList.remove('active');
+    $('#speedIntro').classList.add('active');
+  };
+
+  $('#speedKbNo').onclick = () => {
+    state.speed.jpIme = 'no';
+    localStorage.setItem('km_speed_jpime', 'no');
+    $('#speedSetup').classList.remove('active');
+    $('#speedIntro').classList.add('active');
+  };
+
+  $('#speedChangeKbBtn').onclick = () => {
+    showSpeedSetup();
+  };
+
+  $('#speedStartBtn').onclick = () => {
+    if (state.speed.jpIme !== 'yes' && state.speed.jpIme !== 'no') {
+      showSpeedSetup();
+      return;
+    }
+    startSpeedSession();
+  };
+  $('#speedRestartBtn').onclick = () => startSpeedSession();
+  $('#speedEndBtn').onclick = () => endSpeed(true);
+
+  $('#speedInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      submitSpeedAnswer();
+    }
+  });
 
   $('#closeSettingsBtn').onclick = () => $('#settingsOverlay').classList.remove('active');
 
