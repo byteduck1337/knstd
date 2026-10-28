@@ -108,7 +108,7 @@
         <div class="training-card" data-nav="speed">
           <div class="training-card-icon">速</div>
           <div class="training-card-title">SpeedEdging</div>
-          <div class="training-card-desc">Flash words. Type the translation. Climb to SSS rank in 3 minutes. (BETA) </div>
+          <div class="training-card-desc">Flash words. Type the translation. Climb to SSS rank in 3 minutes. (BETA)</div>
           <div class="training-card-badge">Speed</div>
         </div>
 
@@ -202,11 +202,48 @@
           <div class="speed-setup-note" id="speedSetupNote"></div>
         </div>
 
+        <div class="speed-level" id="speedLevel">
+          <div class="speed-intro-title">Choose your level</div>
+          <div class="speed-intro-desc">Pick the vocabulary tier that matches you.</div>
+          <div class="speed-level-grid" id="speedLevelGrid">
+            <button class="speed-level-card" data-level="junior">
+              <div class="speed-level-title">Little Junior</div>
+              <div class="speed-level-desc">Everyday basics: greetings, pronouns, numbers, family, simple verbs.</div>
+            </button>
+            <button class="speed-level-card" data-level="n5">
+              <div class="speed-level-title">N5</div>
+              <div class="speed-level-desc">JLPT N5: nature, places, transport, basic food and adjectives.</div>
+            </button>
+            <button class="speed-level-card" data-level="n4">
+              <div class="speed-level-title">N4</div>
+              <div class="speed-level-desc">JLPT N4: daily life, work, study, feelings, body parts, weather.</div>
+            </button>
+            <button class="speed-level-card" data-level="n3">
+              <div class="speed-level-title">N3</div>
+              <div class="speed-level-desc">JLPT N3: abstract concepts, society, intermediate verbs, tech.</div>
+            </button>
+            <button class="speed-level-card" data-level="n2">
+              <div class="speed-level-title">N2</div>
+              <div class="speed-level-desc">JLPT N2: business, politics, science, complex adjectives.</div>
+            </button>
+            <button class="speed-level-card" data-level="n1">
+              <div class="speed-level-title">N1</div>
+              <div class="speed-level-desc">JLPT N1: literary, philosophical, specialized academic terms.</div>
+            </button>
+            <button class="speed-level-card" data-level="quepro">
+              <div class="speed-level-title">QUE PRO</div>
+              <div class="speed-level-desc">Everything: slang, IT jargon, rare loanwords, full dictionary.</div>
+            </button>
+          </div>
+          <div class="speed-setup-note" id="speedLevelNote"></div>
+        </div>
+
         <div class="speed-intro" id="speedIntro">
           <div class="speed-intro-title">Ready?</div>
           <div class="speed-intro-desc">Watch the word. Remember it. Type the translation before the bar empties.</div>
           <button class="start-btn" id="speedStartBtn" style="width: auto; padding: 1rem 2rem; margin-top: 2rem;">Start SpeedEdging</button>
           <button class="back-btn" id="speedChangeKbBtn" style="margin-top: 1rem;">Change keyboard answer</button>
+          <button class="back-btn" id="speedChangeLevelBtn" style="margin-top: 0.5rem;">Change level</button>
         </div>
 
         <div class="speed-flash-wrap" id="speedFlashWrap">
