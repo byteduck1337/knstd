@@ -32,7 +32,7 @@
         
         <button class="ext-tab" data-nav="leaderboard">
           <svg viewBox="0 0 24 24"><path d="M12 2l3 7H9l3-7z"/><path d="M3 12h4v9H3z"/><path d="M10 10h4v11h-4z"/><path d="M17 12h4v9h-4z"/></svg>
-          <span class="ext-tab-title">Leaderboard</span>
+          <span class="ext-tab-title">Leaderboard (ALPHA)</span>
         </button>
         
         <div class="ext-separator"></div>
@@ -73,49 +73,56 @@
         <div class="training-card" data-nav="srs-start">
           <div class="training-card-icon">⏱</div>
           <div class="training-card-title">Spaced Repetition</div>
-          <div class="training-card-desc">Only cards that are <b>due</b>. Rate yourself after each answer.</div>
+          <div class="training-card-desc">Only cards that are <b>due</b>. Rate yourself after each answer. (ALPHA)</div>
           <div class="training-card-badge">SRS</div>
         </div>
 
         <div class="training-card" data-nav="dict">
           <div class="training-card-icon">本</div>
           <div class="training-card-title">Dictionary</div>
-          <div class="training-card-desc">Add words and sentences. Auto or manual translation.</div>
+          <div class="training-card-desc">Add words and sentences. Auto or manual translation. (BETA)</div>
           <div class="training-card-badge">Vocab</div>
         </div>
 
         <div class="training-card" data-nav="sentence">
           <div class="training-card-icon">文</div>
           <div class="training-card-title">Sentence Builder</div>
-          <div class="training-card-desc">Arrange the words to form a correct Japanese sentence.</div>
+          <div class="training-card-desc">Arrange the words to form a correct Japanese sentence. (ALPHA)</div>
           <div class="training-card-badge">Grammar</div>
         </div>
 
         <div class="training-card" data-nav="verb">
           <div class="training-card-icon">動</div>
           <div class="training-card-title">Verb Conjugation</div>
-          <div class="training-card-desc">Practice changing verbs into different forms.</div>
+          <div class="training-card-desc">Practice changing verbs into different forms. (PRE-ALPHA)</div>
           <div class="training-card-badge">Grammar</div>
         </div>
 
         <div class="training-card" data-nav="reading">
           <div class="training-card-icon">読</div>
           <div class="training-card-title">Interactive Reading</div>
-          <div class="training-card-desc">Read texts and tap words for instant meanings.</div>
+          <div class="training-card-desc">Read texts and tap words for instant meanings. (PRE-ALPHA)</div>
           <div class="training-card-badge">Reading</div>
+        </div>
+
+        <div class="training-card" data-nav="speed">
+          <div class="training-card-icon">速</div>
+          <div class="training-card-title">SpeedEdging</div>
+          <div class="training-card-desc">Flash words. Type the translation. Climb to SSS rank in 3 minutes. (BETA) </div>
+          <div class="training-card-badge">Speed</div>
         </div>
 
         <div class="training-card" data-nav="leaderboard">
           <div class="training-card-icon">優</div>
           <div class="training-card-title">Global Leaderboard</div>
-          <div class="training-card-desc">Compete with other learners worldwide.</div>
+          <div class="training-card-desc">Compete with other learners worldwide. (ALPHA)</div>
           <div class="training-card-badge">Gamification</div>
         </div>
 
         <div class="training-card" data-nav="progress">
           <div class="training-card-icon">島</div>
           <div class="training-card-title">Learning Island</div>
-          <div class="training-card-desc">Build your virtual world as you master Japanese.</div>
+          <div class="training-card-desc">Build your virtual world as you master Japanese. (PRE-ALPHA)</div>
           <div class="training-card-badge">Gamification</div>
         </div>
       </div>
@@ -157,6 +164,96 @@
           <button class="back-btn" id="endBtn" style="padding: 0.2rem 0.5rem; margin: 0; display: none;">End</button>
         </div>
         <div class="method-container" id="methodContainer"></div>
+      </div>
+    </div>
+
+    <div id="screen-speed" class="screen">
+      <div class="mode-header">
+        <div class="mode-header-left">
+          <h1 class="section-title">SpeedEdging</h1>
+          <p class="section-desc">Flash. Recall. Rank up. 3 minutes on the clock.</p>
+        </div>
+        <div class="mode-header-right">
+          <button class="back-btn" id="speedEndBtn" style="margin: 0; display: none;">End Session</button>
+          <button class="back-btn" data-nav="menu" style="margin: 0;">← Back</button>
+        </div>
+      </div>
+
+      <div class="speed-hud">
+        <div class="speed-hud-left">
+          <div class="speed-lives" id="speedLives"></div>
+        </div>
+        <div class="speed-hud-center">
+          <div class="speed-session-timer"><span id="speedSessionTimer">3:00</span></div>
+        </div>
+        <div class="speed-hud-right">
+          <div class="speed-streak" id="speedStreak">Streak 0</div>
+        </div>
+      </div>
+
+      <div class="speed-stage" id="speedStage">
+        <div class="speed-setup" id="speedSetup">
+          <div class="speed-intro-title">Japanese keyboard?</div>
+          <div class="speed-intro-desc">Do you have a Japanese IME (kana / kanji input) enabled on this device? If not, Japanese answers will be typed and accepted in romaji.</div>
+          <div class="speed-setup-actions">
+            <button class="start-btn" id="speedKbYes" style="width: auto; padding: 1rem 1.75rem;">Yes, I have it</button>
+            <button class="back-btn" id="speedKbNo" style="margin: 0;">No, use romaji</button>
+          </div>
+          <div class="speed-setup-note" id="speedSetupNote"></div>
+        </div>
+
+        <div class="speed-intro" id="speedIntro">
+          <div class="speed-intro-title">Ready?</div>
+          <div class="speed-intro-desc">Watch the word. Remember it. Type the translation before the bar empties.</div>
+          <button class="start-btn" id="speedStartBtn" style="width: auto; padding: 1rem 2rem; margin-top: 2rem;">Start SpeedEdging</button>
+          <button class="back-btn" id="speedChangeKbBtn" style="margin-top: 1rem;">Change keyboard answer</button>
+        </div>
+
+        <div class="speed-flash-wrap" id="speedFlashWrap">
+          <div class="speed-flash-word" id="speedFlashWord"></div>
+          <div class="speed-flash-lang" id="speedFlashLang"></div>
+        </div>
+
+        <div class="speed-answer-wrap" id="speedAnswerWrap">
+          <div class="speed-prompt">Say what, Say wha!!!</div>
+          <div class="speed-input-row">
+            <input type="text" class="text-input speed-input" id="speedInput" placeholder="Type the translation..." autocomplete="off" autocapitalize="off" spellcheck="false">
+          </div>
+          <div class="speed-timer-bar-wrap">
+            <div class="speed-timer-bar" id="speedTimerBar"></div>
+          </div>
+          <div class="feedback" id="speedFeedback"></div>
+        </div>
+
+        <div class="speed-rank-wrap" id="speedRankWrap">
+          <div class="speed-rank-badge" id="speedRankBadge">D</div>
+        </div>
+
+        <div class="speed-session-end" id="speedSessionEnd">
+          <div class="speed-intro-title">Session Complete</div>
+          <div class="speed-end-stats">
+            <div class="speed-end-stat">
+              <div class="speed-end-val" id="speedEndRank">D</div>
+              <div class="speed-end-lbl">Rank</div>
+            </div>
+            <div class="speed-end-stat">
+              <div class="speed-end-val" id="speedEndScore">0</div>
+              <div class="speed-end-lbl">Score</div>
+            </div>
+            <div class="speed-end-stat">
+              <div class="speed-end-val" id="speedEndCorrect">0</div>
+              <div class="speed-end-lbl">Correct</div>
+            </div>
+            <div class="speed-end-stat">
+              <div class="speed-end-val" id="speedEndWords">0</div>
+              <div class="speed-end-lbl">Words</div>
+            </div>
+          </div>
+          <div class="speed-end-actions">
+            <button class="start-btn" id="speedRestartBtn" style="width: auto; padding: 1rem 2rem;">Play Again</button>
+            <button class="back-btn" data-nav="menu" style="margin: 0;">Menu</button>
+          </div>
+        </div>
       </div>
     </div>
 
