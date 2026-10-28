@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
       score: 0, correct: 0, total: 0, sessionStart: 0, sessionEnd: 0,
       current: null, answerTime: 15000, answerStart: 0, answerTimer: null,
       sessionTimer: null, flashTimers: [], inputLocked: false, rank: 'D',
-      totalScore: 0, jpIme: null
+      totalScore: 0, jpIme: null, level: null
     }
   };
 
@@ -49,6 +49,10 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const v = localStorage.getItem('km_speed_jpime');
       if (v === 'yes' || v === 'no') state.speed.jpIme = v;
+    } catch(e){}
+    try {
+      const lv = localStorage.getItem('km_speed_level');
+      if (lv) state.speed.level = lv;
     } catch(e){}
   };
   const save = (key, val) => localStorage.setItem(`km_${key}`, JSON.stringify(val));
@@ -843,8 +847,17 @@ document.addEventListener('DOMContentLoaded', () => {
     return { sim: similarity(g, e), matchedVariant: 'plain' };
   };
 
+  const levelFilter = () => {
+    const lv = state.speed.level;
+    if (!lv || lv === 'quepro') return DICT_WORDS;
+    return DICT_WORDS.filter(w => w.level === lv);
+  };
+
   const pickSpeedPair = () => {
-    const pool = DICT_WORDS.filter(w => w.en && w.ru && w.jp && w.romaji);
+    const pool = levelFilter().filter(w => w.en && w.ru && w.jp && w.romaji);
+    if (!pool.length) {
+      return { prompt: 'error', answer: 'error', lang: 'Error', answerLang: 'Error', jp: false, isJpAnswer: false };
+    }
     const item = pool[Math.floor(Math.random() * pool.length)];
     const mode = Math.floor(Math.random() * 5);
     if (mode === 0) return { prompt: item.en, answer: item.romaji, lang: 'English', answerLang: 'Romaji', jp: false, isJpAnswer: false };
@@ -856,6 +869,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const showSpeedSetup = () => {
     $('#speedSetup').classList.add('active');
+    $('#speedLevel').classList.remove('active');
     $('#speedIntro').classList.remove('active');
     $('#speedFlashWrap').classList.remove('active');
     $('#speedAnswerWrap').classList.remove('active');
@@ -865,6 +879,31 @@ document.addEventListener('DOMContentLoaded', () => {
     if (state.speed.jpIme === 'yes') note.textContent = 'Japanese IME: enabled — Japanese answers can be typed as kana/kanji or romaji';
     else if (state.speed.jpIme === 'no') note.textContent = 'Japanese IME: not available — Japanese answers will be typed in romaji';
     else note.textContent = '';
+  };
+
+  const showSpeedLevel = () => {
+    $('#speedSetup').classList.remove('active');
+    $('#speedLevel').classList.add('active');
+    $('#speedIntro').classList.remove('active');
+    $('#speedFlashWrap').classList.remove('active');
+    $('#speedAnswerWrap').classList.remove('active');
+    $('#speedSessionEnd').classList.remove('active');
+    $('#speedEndBtn').style.display = 'none';
+    $$('#speedLevelGrid .speed-level-card').forEach(c => {
+      c.classList.toggle('selected', c.dataset.level === state.speed.level);
+    });
+    const note = $('#speedLevelNote');
+    note.textContent = state.speed.level ? `Selected: ${state.speed.level.toUpperCase()}` : 'No level selected yet';
+  };
+
+  const showSpeedIntro = () => {
+    $('#speedSetup').classList.remove('active');
+    $('#speedLevel').classList.remove('active');
+    $('#speedIntro').classList.add('active');
+    $('#speedFlashWrap').classList.remove('active');
+    $('#speedAnswerWrap').classList.remove('active');
+    $('#speedSessionEnd').classList.remove('active');
+    $('#speedEndBtn').style.display = 'none';
   };
 
   const openSpeed = () => {
@@ -889,7 +928,13 @@ document.addEventListener('DOMContentLoaded', () => {
     $('#speedTimerBar').style.width = '100%';
     $('#speedTimerBar').className = 'speed-timer-bar';
     go('speed');
-    showSpeedSetup();
+    if (!state.speed.jpIme) {
+      showSpeedSetup();
+    } else if (!state.speed.level) {
+      showSpeedLevel();
+    } else {
+      showSpeedIntro();
+    }
   };
 
   const clearSpeedTimers = () => {
@@ -900,6 +945,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const startSpeedSession = () => {
+    if (!state.speed.level) { showSpeedLevel(); return; }
     state.speed.active = true;
     state.speed.phase = 'flash';
     state.speed.lives = 5;
@@ -917,6 +963,7 @@ document.addEventListener('DOMContentLoaded', () => {
     $('#speedStreak').textContent = 'Streak 0';
     setSpeedRank('D', false);
     $('#speedSetup').classList.remove('active');
+    $('#speedLevel').classList.remove('active');
     $('#speedIntro').classList.remove('active');
     $('#speedSessionEnd').classList.remove('active');
     $('#speedEndBtn').style.display = 'inline-flex';
@@ -1123,6 +1170,7 @@ document.addEventListener('DOMContentLoaded', () => {
       $('#speedEndWords').textContent = state.speed.total;
       $('#speedSessionEnd').classList.add('active');
       $('#speedSetup').classList.remove('active');
+      $('#speedLevel').classList.remove('active');
       $('#speedIntro').classList.remove('active');
       $('#speedFlashWrap').classList.remove('active');
       $('#speedAnswerWrap').classList.remove('active');
@@ -1133,31 +1181,50 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       setSpeedRank(finalRank, true);
     } else {
-      showSpeedSetup();
+      if (!state.speed.jpIme) showSpeedSetup();
+      else if (!state.speed.level) showSpeedLevel();
+      else showSpeedIntro();
     }
   };
 
   $('#speedKbYes').onclick = () => {
     state.speed.jpIme = 'yes';
     localStorage.setItem('km_speed_jpime', 'yes');
-    $('#speedSetup').classList.remove('active');
-    $('#speedIntro').classList.add('active');
+    showSpeedLevel();
   };
 
   $('#speedKbNo').onclick = () => {
     state.speed.jpIme = 'no';
     localStorage.setItem('km_speed_jpime', 'no');
-    $('#speedSetup').classList.remove('active');
-    $('#speedIntro').classList.add('active');
+    showSpeedLevel();
   };
 
   $('#speedChangeKbBtn').onclick = () => {
     showSpeedSetup();
   };
 
+  $('#speedChangeLevelBtn').onclick = () => {
+    showSpeedLevel();
+  };
+
+  $$('#speedLevelGrid .speed-level-card').forEach(card => {
+    card.onclick = () => {
+      state.speed.level = card.dataset.level;
+      localStorage.setItem('km_speed_level', state.speed.level);
+      $$('#speedLevelGrid .speed-level-card').forEach(c => c.classList.toggle('selected', c === card));
+      const note = $('#speedLevelNote');
+      note.textContent = `Selected: ${state.speed.level.toUpperCase()}`;
+      setTimeout(() => showSpeedIntro(), 250);
+    };
+  });
+
   $('#speedStartBtn').onclick = () => {
     if (state.speed.jpIme !== 'yes' && state.speed.jpIme !== 'no') {
       showSpeedSetup();
+      return;
+    }
+    if (!state.speed.level) {
+      showSpeedLevel();
       return;
     }
     startSpeedSession();
