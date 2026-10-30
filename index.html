@@ -192,6 +192,36 @@
       </div>
 
       <div class="speed-stage" id="speedStage">
+        <div class="speed-setup" id="speedNative">
+          <div class="speed-intro-title">What is your native language?</div>
+          <div class="speed-intro-desc">Choose the language you speak.</div>
+          <div class="speed-level-grid" style="max-width: 500px; margin-top: 2rem;">
+            <button class="speed-level-card speed-native-card" data-native="ru">
+              <div class="speed-level-title">Русский</div>
+              <div class="speed-level-desc">Russian</div>
+            </button>
+            <button class="speed-level-card speed-native-card" data-native="en">
+              <div class="speed-level-title">English</div>
+              <div class="speed-level-desc">English</div>
+            </button>
+          </div>
+        </div>
+
+        <div class="speed-setup" id="speedDirection">
+          <div class="speed-intro-title">What do you want to practice?</div>
+          <div class="speed-intro-desc">Choose the translation direction.</div>
+          <div class="speed-level-grid" style="max-width: 500px; margin-top: 2rem;">
+            <button class="speed-level-card speed-direction-card" data-dir="native2jp">
+              <div class="speed-level-title">My language → Japanese</div>
+              <div class="speed-level-desc">Type the Japanese translation</div>
+            </button>
+            <button class="speed-level-card speed-direction-card" data-dir="jp2native">
+              <div class="speed-level-title">Japanese → My language</div>
+              <div class="speed-level-desc">Type the translation in your language</div>
+            </button>
+          </div>
+        </div>
+
         <div class="speed-setup" id="speedSetup">
           <div class="speed-intro-title">Japanese keyboard?</div>
           <div class="speed-intro-desc">Do you have a Japanese IME (kana / kanji input) enabled on this device? If not, Japanese answers will be typed and accepted in romaji.</div>
@@ -241,9 +271,27 @@
         <div class="speed-intro" id="speedIntro">
           <div class="speed-intro-title">Ready?</div>
           <div class="speed-intro-desc">Watch the word. Remember it. Type the translation before the bar empties.</div>
+          
           <button class="start-btn" id="speedStartBtn" style="width: auto; padding: 1rem 2rem; margin-top: 2rem;">Start SpeedEdging</button>
-          <button class="back-btn" id="speedChangeKbBtn" style="margin-top: 1rem;">Change keyboard answer</button>
-          <button class="back-btn" id="speedChangeLevelBtn" style="margin-top: 0.5rem;">Change level</button>
+          
+          <div class="speed-settings-wrap" id="speedSettingsWrap">
+            <button class="speed-settings-btn" id="speedSettingsBtn" aria-label="Settings">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+            
+            <div class="speed-settings-popover" id="speedSettingsPopover">
+              <div class="speed-settings-title">Gamification Settings</div>
+              <button class="speed-settings-item" id="speedChangeLangBtn">
+                <span>Language & Direction</span>
+              </button>
+              <button class="speed-settings-item" id="speedChangeLevelBtn">
+                <span>Difficulty Level</span>
+              </button>
+              <button class="speed-settings-item" id="speedChangeKbBtn">
+                <span>Keyboard Answer</span>
+              </button>
+            </div>
+          </div>
         </div>
 
         <div class="speed-flash-wrap" id="speedFlashWrap">
