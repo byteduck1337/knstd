@@ -12,7 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
       score: 0, correct: 0, total: 0, sessionStart: 0, sessionEnd: 0,
       current: null, answerTime: 15000, answerStart: 0, answerTimer: null,
       sessionTimer: null, flashTimers: [], inputLocked: false, rank: 'D',
-      totalScore: 0, jpIme: null, level: null
+      totalScore: 0, jpIme: null, level: null,
+      nativeLang: null, direction: null
     }
   };
 
@@ -53,6 +54,14 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const lv = localStorage.getItem('km_speed_level');
       if (lv) state.speed.level = lv;
+    } catch(e){}
+    try {
+      const nl = localStorage.getItem('km_speed_native');
+      if (nl === 'ru' || nl === 'en') state.speed.nativeLang = nl;
+    } catch(e){}
+    try {
+      const dir = localStorage.getItem('km_speed_direction');
+      if (dir === 'native2jp' || dir === 'jp2native') state.speed.direction = dir;
     } catch(e){}
   };
   const save = (key, val) => localStorage.setItem(`km_${key}`, JSON.stringify(val));
@@ -859,21 +868,65 @@ document.addEventListener('DOMContentLoaded', () => {
       return { prompt: 'error', answer: 'error', lang: 'Error', answerLang: 'Error', jp: false, isJpAnswer: false };
     }
     const item = pool[Math.floor(Math.random() * pool.length)];
-    const mode = Math.floor(Math.random() * 5);
-    if (mode === 0) return { prompt: item.en, answer: item.romaji, lang: 'English', answerLang: 'Romaji', jp: false, isJpAnswer: false };
-    if (mode === 1) return { prompt: item.ru, answer: item.romaji, lang: 'Русский', answerLang: 'Romaji', jp: false, isJpAnswer: false };
-    if (mode === 2) return { prompt: item.jp, answer: item.romaji, lang: '日本語', answerLang: 'Romaji', jp: true, isJpAnswer: false };
-    if (mode === 3) return { prompt: item.romaji, answer: item.en, lang: 'Romaji', answerLang: 'English', jp: false, isJpAnswer: false };
-    return { prompt: item.romaji, answer: item.jp, lang: 'Romaji', answerLang: '日本語', jp: false, isJpAnswer: true };
+    const native = state.speed.nativeLang;
+    const nativeWord = native === 'ru' ? item.ru : item.en;
+    const nativeLangName = native === 'ru' ? 'Русский' : 'English';
+    const dir = state.speed.direction;
+
+    if (dir === 'native2jp') {
+      return {
+        prompt: nativeWord,
+        answer: item.jp,
+        lang: nativeLangName,
+        answerLang: '日本語',
+        jp: false,
+        isJpAnswer: true
+      };
+    } else {
+      return {
+        prompt: item.jp,
+        answer: nativeWord,
+        lang: '日本語',
+        answerLang: nativeLangName,
+        jp: true,
+        isJpAnswer: false
+      };
+    }
+  };
+
+  const hideAllSpeedSections = () => {
+    ['speedNative', 'speedDirection', 'speedSetup', 'speedLevel', 'speedIntro', 'speedFlashWrap', 'speedAnswerWrap', 'speedSessionEnd'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('active');
+    });
+  };
+
+  const showSpeedNative = () => {
+    hideAllSpeedSections();
+    $('#speedNative').classList.add('active');
+    $('#speedEndBtn').style.display = 'none';
+    $$('.speed-native-card').forEach(card => {
+      card.classList.toggle('selected', card.dataset.native === state.speed.nativeLang);
+    });
+  };
+
+  const showSpeedDirection = () => {
+    hideAllSpeedSections();
+    $('#speedDirection').classList.add('active');
+    $('#speedEndBtn').style.display = 'none';
+    const nativeName = state.speed.nativeLang === 'ru' ? 'Русский' : 'English';
+    const native2jpTitle = document.querySelector('.speed-direction-card[data-dir="native2jp"] .speed-level-title');
+    const jp2nativeTitle = document.querySelector('.speed-direction-card[data-dir="jp2native"] .speed-level-title');
+    if (native2jpTitle) native2jpTitle.textContent = `${nativeName} → Japanese`;
+    if (jp2nativeTitle) jp2nativeTitle.textContent = `Japanese → ${nativeName}`;
+    $$('.speed-direction-card').forEach(card => {
+      card.classList.toggle('selected', card.dataset.dir === state.speed.direction);
+    });
   };
 
   const showSpeedSetup = () => {
+    hideAllSpeedSections();
     $('#speedSetup').classList.add('active');
-    $('#speedLevel').classList.remove('active');
-    $('#speedIntro').classList.remove('active');
-    $('#speedFlashWrap').classList.remove('active');
-    $('#speedAnswerWrap').classList.remove('active');
-    $('#speedSessionEnd').classList.remove('active');
     $('#speedEndBtn').style.display = 'none';
     const note = $('#speedSetupNote');
     if (state.speed.jpIme === 'yes') note.textContent = 'Japanese IME: enabled — Japanese answers can be typed as kana/kanji or romaji';
@@ -882,12 +935,8 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const showSpeedLevel = () => {
-    $('#speedSetup').classList.remove('active');
+    hideAllSpeedSections();
     $('#speedLevel').classList.add('active');
-    $('#speedIntro').classList.remove('active');
-    $('#speedFlashWrap').classList.remove('active');
-    $('#speedAnswerWrap').classList.remove('active');
-    $('#speedSessionEnd').classList.remove('active');
     $('#speedEndBtn').style.display = 'none';
     $$('#speedLevelGrid .speed-level-card').forEach(c => {
       c.classList.toggle('selected', c.dataset.level === state.speed.level);
@@ -897,13 +946,11 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const showSpeedIntro = () => {
-    $('#speedSetup').classList.remove('active');
-    $('#speedLevel').classList.remove('active');
+    hideAllSpeedSections();
     $('#speedIntro').classList.add('active');
-    $('#speedFlashWrap').classList.remove('active');
-    $('#speedAnswerWrap').classList.remove('active');
-    $('#speedSessionEnd').classList.remove('active');
     $('#speedEndBtn').style.display = 'none';
+    $('#speedSettingsPopover').classList.remove('active');
+    $('#speedSettingsBtn').classList.remove('active');
   };
 
   const openSpeed = () => {
@@ -928,7 +975,12 @@ document.addEventListener('DOMContentLoaded', () => {
     $('#speedTimerBar').style.width = '100%';
     $('#speedTimerBar').className = 'speed-timer-bar';
     go('speed');
-    if (!state.speed.jpIme) {
+
+    if (!state.speed.nativeLang) {
+      showSpeedNative();
+    } else if (!state.speed.direction) {
+      showSpeedDirection();
+    } else if (!state.speed.jpIme) {
       showSpeedSetup();
     } else if (!state.speed.level) {
       showSpeedLevel();
@@ -945,7 +997,11 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const startSpeedSession = () => {
+    if (!state.speed.nativeLang) { showSpeedNative(); return; }
+    if (!state.speed.direction) { showSpeedDirection(); return; }
+    if (!state.speed.jpIme) { showSpeedSetup(); return; }
     if (!state.speed.level) { showSpeedLevel(); return; }
+
     state.speed.active = true;
     state.speed.phase = 'flash';
     state.speed.lives = 5;
@@ -966,6 +1022,8 @@ document.addEventListener('DOMContentLoaded', () => {
     $('#speedLevel').classList.remove('active');
     $('#speedIntro').classList.remove('active');
     $('#speedSessionEnd').classList.remove('active');
+    $('#speedNative').classList.remove('active');
+    $('#speedDirection').classList.remove('active');
     $('#speedEndBtn').style.display = 'inline-flex';
     $('#speedInput').value = '';
     $('#speedFeedback').textContent = '';
@@ -1174,6 +1232,8 @@ document.addEventListener('DOMContentLoaded', () => {
       $('#speedIntro').classList.remove('active');
       $('#speedFlashWrap').classList.remove('active');
       $('#speedAnswerWrap').classList.remove('active');
+      $('#speedNative').classList.remove('active');
+      $('#speedDirection').classList.remove('active');
       if (elapsed > 0) {
         state.profile.sessions++;
         state.profile.timeSec += elapsed;
@@ -1181,11 +1241,29 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       setSpeedRank(finalRank, true);
     } else {
-      if (!state.speed.jpIme) showSpeedSetup();
+      if (!state.speed.nativeLang) showSpeedNative();
+      else if (!state.speed.direction) showSpeedDirection();
+      else if (!state.speed.jpIme) showSpeedSetup();
       else if (!state.speed.level) showSpeedLevel();
       else showSpeedIntro();
     }
   };
+
+  $$('.speed-native-card').forEach(card => {
+    card.onclick = () => {
+      state.speed.nativeLang = card.dataset.native;
+      localStorage.setItem('km_speed_native', state.speed.nativeLang);
+      showSpeedDirection();
+    };
+  });
+
+  $$('.speed-direction-card').forEach(card => {
+    card.onclick = () => {
+      state.speed.direction = card.dataset.dir;
+      localStorage.setItem('km_speed_direction', state.speed.direction);
+      showSpeedSetup();
+    };
+  });
 
   $('#speedKbYes').onclick = () => {
     state.speed.jpIme = 'yes';
@@ -1199,12 +1277,39 @@ document.addEventListener('DOMContentLoaded', () => {
     showSpeedLevel();
   };
 
-  $('#speedChangeKbBtn').onclick = () => {
-    showSpeedSetup();
+  $('#speedSettingsBtn').onclick = (e) => {
+    e.stopPropagation();
+    $('#speedSettingsBtn').classList.toggle('active');
+    $('#speedSettingsPopover').classList.toggle('active');
+  };
+
+  document.addEventListener('click', (e) => {
+    const popover = $('#speedSettingsPopover');
+    const btn = $('#speedSettingsBtn');
+    if (popover && popover.classList.contains('active')) {
+      if (!e.target.closest('#speedSettingsWrap')) {
+        popover.classList.remove('active');
+        btn.classList.remove('active');
+      }
+    }
+  });
+
+  $('#speedChangeLangBtn').onclick = () => {
+    $('#speedSettingsBtn').classList.remove('active');
+    $('#speedSettingsPopover').classList.remove('active');
+    showSpeedNative();
   };
 
   $('#speedChangeLevelBtn').onclick = () => {
+    $('#speedSettingsBtn').classList.remove('active');
+    $('#speedSettingsPopover').classList.remove('active');
     showSpeedLevel();
+  };
+
+  $('#speedChangeKbBtn').onclick = () => {
+    $('#speedSettingsBtn').classList.remove('active');
+    $('#speedSettingsPopover').classList.remove('active');
+    showSpeedSetup();
   };
 
   $$('#speedLevelGrid .speed-level-card').forEach(card => {
@@ -1219,14 +1324,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   $('#speedStartBtn').onclick = () => {
-    if (state.speed.jpIme !== 'yes' && state.speed.jpIme !== 'no') {
-      showSpeedSetup();
-      return;
-    }
-    if (!state.speed.level) {
-      showSpeedLevel();
-      return;
-    }
     startSpeedSession();
   };
   $('#speedRestartBtn').onclick = () => startSpeedSession();
